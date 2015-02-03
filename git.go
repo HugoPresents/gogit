@@ -20,7 +20,7 @@ type Log struct {
 func (git *Git) Branches() (branches []string, err error) {
 	stdout, stderr, err := git.command("branch")
 	if err != nil {
-		return branches, fmt.Errorf("%s, %s", stderr.String(), stdout.String())
+		return branches, fmt.Errorf("%s", stderr.String())
 	}
 	scanner := bufio.NewScanner(strings.NewReader(stdout.String()))
 	for scanner.Scan() {
