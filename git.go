@@ -51,7 +51,18 @@ func (git *Git) RemoteBranches(remote string) (branches []string, err error) {
 }
 
 func (git *Git) ActiveBranch() (string, error) {
-	return "", nil
+	stdout, stderr, err := git.command("branch")
+	if err != nil {
+		return "", fmt.Errorf("%s", stderr.String())
+	}
+	scanner := bufio.NewScanner(strings.NewReader(stdout.String()))
+	for scanner.Scan() {
+		branchSlice := strings.SplitN(scanner.Text(), " ", 2)
+		if len(branchSlice) > 1 && branchSlice[0] == "*" {
+			return branchSlice[1], nil
+		}
+	}
+	return "", fmt.Errorf("detect active branch failed")
 }
 
 func (git *Git) Pull(remote string) error {
