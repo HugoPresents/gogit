@@ -26,7 +26,7 @@ func (git *Git) Branches() (branches []string, err error) {
 	for scanner.Scan() {
 		branchSlice := strings.SplitN(scanner.Text(), " ", 2)
 		if len(branchSlice) > 1 {
-			branches = append(branches, branchSlice[1])
+			branches = append(branches, strings.Trim(branchSlice[1], " "))
 		}
 	}
 	return branches, nil
@@ -44,16 +44,16 @@ func (git *Git) RemoteBranches(remote string) (branches []string, err error) {
 			if strings.Contains(branchSlice[1], "HEAD") {
 				continue
 			}
-			branches = append(branches, branchSlice[1])
+			branches = append(branches, strings.Trim(branchSlice[1], " "))
 		}
 	}
 	return branches, nil
 }
 
 func (git *Git) ActiveBranch() (string, error) {
-	stdout, stderr, err := git.command("branch")
+	stdout, _, err := git.command("branch")
 	if err != nil {
-		return "", fmt.Errorf("%s", stderr.String())
+		return "", err
 	}
 	scanner := bufio.NewScanner(strings.NewReader(stdout.String()))
 	for scanner.Scan() {
@@ -63,6 +63,14 @@ func (git *Git) ActiveBranch() (string, error) {
 		}
 	}
 	return "", fmt.Errorf("detect active branch failed")
+}
+
+func (git *Git) DeleteBranch(branch string) error {
+	_, stderr, err := git.command("branch", "-D", branch)
+	if err != nil {
+		return fmt.Errorf("%s", stderr.String())
+	}
+	return nil
 }
 
 func (git *Git) Pull(remote string) error {
